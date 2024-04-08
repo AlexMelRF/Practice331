@@ -2,6 +2,7 @@
 
 namespace React\Dns\Query;
 
+use React\Promise\CancellablePromiseInterface;
 use React\Promise\Deferred;
 use React\Promise\PromiseInterface;
 
@@ -24,7 +25,7 @@ final class RetryExecutor implements ExecutorInterface
     public function tryQuery(Query $query, $retries)
     {
         $deferred = new Deferred(function () use (&$promise) {
-            if ($promise instanceof PromiseInterface && \method_exists($promise, 'cancel')) {
+            if ($promise instanceof CancellablePromiseInterface || (!\interface_exists('React\Promise\CancellablePromiseInterface') && \method_exists($promise, 'cancel'))) {
                 $promise->cancel();
             }
         });
@@ -42,7 +43,7 @@ final class RetryExecutor implements ExecutorInterface
             } elseif ($retries <= 0) {
                 $errorback = null;
                 $deferred->reject($e = new \RuntimeException(
-                    'DNS query for ' . $query->describe() . ' failed: too many retries',
+                    'DNS query for ' . $query->name . ' failed: too many retries',
                     0,
                     $e
                 ));
@@ -55,11 +56,11 @@ final class RetryExecutor implements ExecutorInterface
 
                 // Exception trace arguments are not available on some PHP 7.4 installs
                 // @codeCoverageIgnoreStart
-                foreach ($trace as $ti => $one) {
+                foreach ($trace as &$one) {
                     if (isset($one['args'])) {
-                        foreach ($one['args'] as $ai => $arg) {
+                        foreach ($one['args'] as &$arg) {
                             if ($arg instanceof \Closure) {
-                                $trace[$ti]['args'][$ai] = 'Object(' . \get_class($arg) . ')';
+                                $arg = 'Object(' . \get_class($arg) . ')';
                             }
                         }
                     }

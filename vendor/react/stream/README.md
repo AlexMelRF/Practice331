@@ -1,7 +1,6 @@
 # Stream
 
-[![CI status](https://github.com/reactphp/stream/actions/workflows/ci.yml/badge.svg)](https://github.com/reactphp/stream/actions)
-[![installs on Packagist](https://img.shields.io/packagist/dt/react/stream?color=blue&label=installs%20on%20Packagist)](https://packagist.org/packages/react/stream)
+[![Build Status](https://travis-ci.org/reactphp/stream.svg?branch=master)](https://travis-ci.org/reactphp/stream)
 
 Event-driven readable and writable streams for non-blocking I/O in [ReactPHP](https://reactphp.org/).
 
@@ -304,7 +303,7 @@ Re-attach the data source after a previous `pause()`.
 ```php
 $stream->pause();
 
-Loop::addTimer(1.0, function () use ($stream) {
+$loop->addTimer(1.0, function () use ($stream) {
     $stream->resume();
 });
 ```
@@ -610,7 +609,7 @@ data until the buffer drains.
 The stream SHOULD send a `drain` event once the buffer is ready to accept
 more data.
 
-Similarly, if the stream is not writable (already in a closed state)
+Similarly, if the the stream is not writable (already in a closed state)
 it MUST NOT process the given `$data` and SHOULD return `false`,
 indicating that the caller should stop sending data.
 
@@ -738,7 +737,7 @@ stream in order to stop waiting for the stream to flush its final data.
 
 ```php
 $stream->end();
-Loop::addTimer(1.0, function () use ($stream) {
+$loop->addTimer(1.0, function () use ($stream) {
     $stream->close();
 });
 ```
@@ -822,7 +821,7 @@ This can be used to represent a read-only resource like a file stream opened in
 readable mode or a stream such as `STDIN`:
 
 ```php
-$stream = new ReadableResourceStream(STDIN);
+$stream = new ReadableResourceStream(STDIN, $loop);
 $stream->on('data', function ($chunk) {
     echo $chunk;
 });
@@ -839,7 +838,7 @@ Otherwise, it will throw an `InvalidArgumentException`:
 
 ```php
 // throws InvalidArgumentException
-$stream = new ReadableResourceStream(false);
+$stream = new ReadableResourceStream(false, $loop);
 ```
 
 See also the [`DuplexResourceStream`](#readableresourcestream) for read-and-write
@@ -852,19 +851,13 @@ If this fails, it will throw a `RuntimeException`:
 
 ```php
 // throws RuntimeException on Windows
-$stream = new ReadableResourceStream(STDIN);
+$stream = new ReadableResourceStream(STDIN, $loop);
 ```
 
 Once the constructor is called with a valid stream resource, this class will
 take care of the underlying stream resource.
 You SHOULD only use its public API and SHOULD NOT interfere with the underlying
 stream resource manually.
-
-This class takes an optional `LoopInterface|null $loop` parameter that can be used to
-pass the event loop instance to use for this object. You can use a `null` value
-here in order to use the [default loop](https://github.com/reactphp/event-loop#loop).
-This value SHOULD NOT be given unless you're sure you want to explicitly use a
-given event loop instance.
 
 This class takes an optional `int|null $readChunkSize` parameter that controls
 the maximum buffer size in bytes to read at once from the stream.
@@ -881,7 +874,7 @@ This should read until the stream resource is not readable anymore
 mean it reached EOF.
 
 ```php
-$stream = new ReadableResourceStream(STDIN, null, 8192);
+$stream = new ReadableResourceStream(STDIN, $loop, 8192);
 ```
 
 > PHP bug warning: If the PHP process has explicitly been started without a
@@ -889,9 +882,6 @@ $stream = new ReadableResourceStream(STDIN, null, 8192);
   another stream resource. This does not happen if you start this with an empty
   stream like `php test.php < /dev/null` instead of `php test.php <&-`.
   See [#81](https://github.com/reactphp/stream/issues/81) for more details.
-
-> Changelog: As of v1.2.0 the `$loop` parameter can be omitted (or skipped with a
-  `null` value) to use the [default loop](https://github.com/reactphp/event-loop#loop).
 
 ### WritableResourceStream
 
@@ -902,7 +892,7 @@ This can be used to represent a write-only resource like a file stream opened in
 writable mode or a stream such as `STDOUT` or `STDERR`:
 
 ```php
-$stream = new WritableResourceStream(STDOUT);
+$stream = new WritableResourceStream(STDOUT, $loop);
 $stream->write('hello!');
 $stream->end();
 ```
@@ -915,7 +905,7 @@ Otherwise, it will throw an `InvalidArgumentException`:
 
 ```php
 // throws InvalidArgumentException
-$stream = new WritableResourceStream(false);
+$stream = new WritableResourceStream(false, $loop);
 ```
 
 See also the [`DuplexResourceStream`](#readableresourcestream) for read-and-write
@@ -928,7 +918,7 @@ If this fails, it will throw a `RuntimeException`:
 
 ```php
 // throws RuntimeException on Windows
-$stream = new WritableResourceStream(STDOUT);
+$stream = new WritableResourceStream(STDOUT, $loop);
 ```
 
 Once the constructor is called with a valid stream resource, this class will
@@ -943,19 +933,13 @@ For this, it uses an in-memory buffer string to collect all outstanding writes.
 This buffer has a soft-limit applied which defines how much data it is willing
 to accept before the caller SHOULD stop sending further data.
 
-This class takes an optional `LoopInterface|null $loop` parameter that can be used to
-pass the event loop instance to use for this object. You can use a `null` value
-here in order to use the [default loop](https://github.com/reactphp/event-loop#loop).
-This value SHOULD NOT be given unless you're sure you want to explicitly use a
-given event loop instance.
-
 This class takes an optional `int|null $writeBufferSoftLimit` parameter that controls
 this maximum buffer size in bytes.
 You can use a `null` value here in order to apply its default value.
 This value SHOULD NOT be changed unless you know what you're doing.
 
 ```php
-$stream = new WritableResourceStream(STDOUT, null, 8192);
+$stream = new WritableResourceStream(STDOUT, $loop, 8192);
 ```
 
 This class takes an optional `int|null $writeChunkSize` parameter that controls
@@ -970,13 +954,10 @@ This can be `-1` which means "write everything available" to the
 underlying stream resource.
 
 ```php
-$stream = new WritableResourceStream(STDOUT, null, null, 8192);
+$stream = new WritableResourceStream(STDOUT, $loop, null, 8192);
 ```
 
 See also [`write()`](#write) for more details.
-
-> Changelog: As of v1.2.0 the `$loop` parameter can be omitted (or skipped with a
-  `null` value) to use the [default loop](https://github.com/reactphp/event-loop#loop).
 
 ### DuplexResourceStream
 
@@ -988,7 +969,7 @@ in read and write mode mode or a stream such as a TCP/IP connection:
 
 ```php
 $conn = stream_socket_client('tcp://google.com:80');
-$stream = new DuplexResourceStream($conn);
+$stream = new DuplexResourceStream($conn, $loop);
 $stream->write('hello!');
 $stream->end();
 ```
@@ -1001,7 +982,7 @@ Otherwise, it will throw an `InvalidArgumentException`:
 
 ```php
 // throws InvalidArgumentException
-$stream = new DuplexResourceStream(false);
+$stream = new DuplexResourceStream(false, $loop);
 ```
 
 See also the [`ReadableResourceStream`](#readableresourcestream) for read-only
@@ -1015,19 +996,13 @@ If this fails, it will throw a `RuntimeException`:
 
 ```php
 // throws RuntimeException on Windows
-$stream = new DuplexResourceStream(STDOUT);
+$stream = new DuplexResourceStream(STDOUT, $loop);
 ```
 
 Once the constructor is called with a valid stream resource, this class will
 take care of the underlying stream resource.
 You SHOULD only use its public API and SHOULD NOT interfere with the underlying
 stream resource manually.
-
-This class takes an optional `LoopInterface|null $loop` parameter that can be used to
-pass the event loop instance to use for this object. You can use a `null` value
-here in order to use the [default loop](https://github.com/reactphp/event-loop#loop).
-This value SHOULD NOT be given unless you're sure you want to explicitly use a
-given event loop instance.
 
 This class takes an optional `int|null $readChunkSize` parameter that controls
 the maximum buffer size in bytes to read at once from the stream.
@@ -1045,7 +1020,7 @@ mean it reached EOF.
 
 ```php
 $conn = stream_socket_client('tcp://google.com:80');
-$stream = new DuplexResourceStream($conn, null, 8192);
+$stream = new DuplexResourceStream($conn, $loop, 8192);
 ```
 
 Any `write()` calls to this class will not be performed instantly, but will
@@ -1065,14 +1040,11 @@ If you want to change the write buffer soft limit, you can pass an instance of
 
 ```php
 $conn = stream_socket_client('tcp://google.com:80');
-$buffer = new WritableResourceStream($conn, null, 8192);
-$stream = new DuplexResourceStream($conn, null, null, $buffer);
+$buffer = new WritableResourceStream($conn, $loop, 8192);
+$stream = new DuplexResourceStream($conn, $loop, null, $buffer);
 ```
 
 See also [`WritableResourceStream`](#writableresourcestream) for more details.
-
-> Changelog: As of v1.2.0 the `$loop` parameter can be omitted (or skipped with a
-  `null` value) to use the [default loop](https://github.com/reactphp/event-loop#loop).
 
 ### ThroughStream
 
@@ -1151,8 +1123,8 @@ This is useful for some APIs which may require a single
 more convenient to work with a single stream instance like this:
 
 ```php
-$stdin = new ReadableResourceStream(STDIN);
-$stdout = new WritableResourceStream(STDOUT);
+$stdin = new ReadableResourceStream(STDIN, $loop);
+$stdout = new WritableResourceStream(STDOUT, $loop);
 
 $stdio = new CompositeStream($stdin, $stdout);
 
@@ -1182,10 +1154,14 @@ The following example can be used to pipe the contents of a source file into
 a destination file without having to ever read the whole file into memory:
 
 ```php
-$source = new React\Stream\ReadableResourceStream(fopen('source.txt', 'r'));
-$dest = new React\Stream\WritableResourceStream(fopen('destination.txt', 'w'));
+$loop = new React\EventLoop\StreamSelectLoop;
+
+$source = new React\Stream\ReadableResourceStream(fopen('source.txt', 'r'), $loop);
+$dest = new React\Stream\WritableResourceStream(fopen('destination.txt', 'w'), $loop);
 
 $source->pipe($dest);
+
+$loop->run();
 ```
 
 > Note that this example uses `fopen()` for illustration purposes only.
@@ -1203,13 +1179,13 @@ This project follows [SemVer](https://semver.org/).
 This will install the latest supported version:
 
 ```bash
-composer require react/stream:^1.3
+$ composer require react/stream:^1.1.1
 ```
 
 See also the [CHANGELOG](CHANGELOG.md) for details about version upgrades.
 
 This project aims to run on any platform and thus does not require any PHP
-extensions and supports running on legacy PHP 5.3 through current PHP 8+ and HHVM.
+extensions and supports running on legacy PHP 5.3 through current PHP 7+ and HHVM.
 It's *highly recommended to use PHP 7+* for this project due to its vast
 performance improvements.
 
@@ -1219,13 +1195,13 @@ To run the test suite, you first need to clone this repo and then install all
 dependencies [through Composer](https://getcomposer.org):
 
 ```bash
-composer install
+$ composer install
 ```
 
 To run the test suite, go to the project root and run:
 
 ```bash
-vendor/bin/phpunit
+$ php vendor/bin/phpunit
 ```
 
 The test suite also contains a number of functional integration tests that rely
@@ -1233,7 +1209,7 @@ on a stable internet connection.
 If you do not want to run these, they can simply be skipped like this:
 
 ```bash
-vendor/bin/phpunit --exclude-group internet
+$ php vendor/bin/phpunit --exclude-group internet
 ```
 
 ## License
