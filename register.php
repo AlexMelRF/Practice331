@@ -19,12 +19,8 @@ if(isset($_POST["register"])) {
     $user_object = new ChatUser;
     $user_object->setUserName($_POST['user_name']);
     $user_object->setUserEmail($_POST['user_email']);
-    ////////////////////
     $user_object->setUserPassword($_POST['user_password']);
-    ///////////////////////////
     $user_object->setUserPassword(password_hash($_POST['user_password'], PASSWORD_BCRYPT));
-
-    ////////////////////////////
     $user_object->setUserProfile("images/default_ava.png");
     //user is disabled until verify email
     $user_object->setUserStatus('Disabled');
@@ -38,13 +34,13 @@ if(isset($_POST["register"])) {
             // email settings
             $mail = new PHPMailer(true);
             $mail->isSMTP();
-            $mail->Host = 'smtp.yandex.ru';
+            $mail->Host = '';
             $mail->SMTPAuth = true;
-            $mail->Username   = 'alexmelrf@yandex.ru';                     
-            $mail->Password   = 'oxoxdspzhyrkbgxg';
+            $mail->Username   = '';                     
+            $mail->Password   = '';
             $mail->SMTPSecure = 'ssl';
             $mail->Port = 465;
-            $mail->setFrom('alexmelrf@yandex.ru', 'Test');
+            $mail->setFrom('', 'Test');
             $mail->addAddress($user_object->getUserEmail());
             $mail->isHTML(true);
             $mail->Subject = 'Registration verification for Chat';

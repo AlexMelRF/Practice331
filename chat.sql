@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Хост: 127.0.0.1
--- Время создания: Апр 08 2024 г., 22:12
+-- Время создания: Апр 08 2024 г., 22:25
 -- Версия сервера: 10.4.28-MariaDB
 -- Версия PHP: 8.2.4
 
@@ -33,6 +33,13 @@ CREATE TABLE `chatrooms` (
   `msg` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
   `created_on` datetime NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=latin1 COLLATE=latin1_swedish_ci;
+
+--
+-- Дамп данных таблицы `chatrooms`
+--
+
+INSERT INTO `chatrooms` (`id`, `userid`, `msg`, `created_on`) VALUES
+(35, 25, 'Hello everyone!', '2024-04-08 08:24:20');
 
 -- --------------------------------------------------------
 
@@ -74,7 +81,8 @@ CREATE TABLE `chat_user_table` (
 --
 
 INSERT INTO `chat_user_table` (`user_id`, `user_name`, `user_email`, `user_password`, `user_profile`, `user_status`, `user_created_on`, `user_verification_code`, `user_login_status`, `user_token`, `user_connection_id`) VALUES
-(23, 'Sandor', 'sandoroleck@gmail.com', '$2y$10$dhhfl5FrJn/ilX0SlS0NWux25P3j4Tq1j5nuwB01Qm7wGNYM5aGCC', 'images/default_ava.png', 'Enable', '2024-04-08 20:54:24', '07e280c7e2e806d8d96f367cc364f068', 'Logout', '779ef5fedd5a5254da833e7449c39ca7', 0);
+(23, 'Sandor', 'sandoroleck@gmail.com', '$2y$10$dhhfl5FrJn/ilX0SlS0NWux25P3j4Tq1j5nuwB01Qm7wGNYM5aGCC', 'images/default_ava.png', 'Enable', '2024-04-08 20:54:24', '07e280c7e2e806d8d96f367cc364f068', 'Login', '9e1bc0447605d2745de82b73a7980cd9', 88),
+(25, 'Raven', 'alexravenbird@rambler.ru', '$2y$10$5RykrVjho3nUkoeK/6ZC5uyAwhQykYJzA/wA2tWpqAi5rQmlk9cz2', 'images/default_ava.png', 'Enable', '2024-04-08 22:23:42', '963836598bb0ef51d7b51ee095c3d3b6', 'Login', 'c2dfc41f2a6a0e88cbc02e54f0f2185c', 0);
 
 --
 -- Индексы сохранённых таблиц
@@ -106,7 +114,7 @@ ALTER TABLE `chat_user_table`
 -- AUTO_INCREMENT для таблицы `chatrooms`
 --
 ALTER TABLE `chatrooms`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
 
 --
 -- AUTO_INCREMENT для таблицы `chat_message`
@@ -118,7 +126,7 @@ ALTER TABLE `chat_message`
 -- AUTO_INCREMENT для таблицы `chat_user_table`
 --
 ALTER TABLE `chat_user_table`
-  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=24;
+  MODIFY `user_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=26;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

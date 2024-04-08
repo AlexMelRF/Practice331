@@ -16,7 +16,7 @@ if(isset($_GET['code'])) {
     if($user_object->is_valid_email_verification_code()) {
         $user_object->setUserStatus('Enable');
         if($user_object->enable_user_account()) {
-            /////
+            /////////
             //$logger::log_signup((string)$user_object -> getUserName());
             /////////
             $_SESSION['success_message'] = 'Your email successfully verified, now you can login into Chat';
